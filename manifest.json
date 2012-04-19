@@ -9,6 +9,7 @@
     }
   },
   "permissions": [
-    "http://api.flickr.com/"
+    "http://api.flickr.com/",
+    "tabs"
   ]
 }
