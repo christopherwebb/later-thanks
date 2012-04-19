@@ -1,0 +1,14 @@
+{
+  "name": "My First Extension",
+  "version": "1.0",
+  "manifest_version": 2,
+  "description": "The first extension that I made.",
+  "app": {
+    "launch": {
+      "local_path": "main.html"
+    }
+  },
+  "permissions": [
+    "http://api.flickr.com/"
+  ]
+}
