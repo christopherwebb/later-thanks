@@ -9,7 +9,11 @@
     }
   },
   "permissions": [
-    "http://api.flickr.com/",
+    "https://api.dropbox.com/",
+    "https://www.dropbox.com/1/",
     "tabs"
+  ],
+ "web_accessible_resources": [
+    "oauth_callback.html"
   ]
 }

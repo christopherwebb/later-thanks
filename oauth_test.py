@@ -4,7 +4,17 @@ import hmac
 import hashlib
 import base64
 import urllib
-import urllib2
+import urllib.request
+from urllib.parse import quote, urlencode
+from functools import cmp_to_key
+
+def generate_quote(unprocessed):
+	if isinstance(s, unicode):
+        encoded = unprocessed.encode('utf-8')
+    else:
+        encoded = str(unprocessed)
+
+	quote(encoded,safe='~')
 
 def generate_signature(params, consumer_secret, token_secret):
 
@@ -21,21 +31,21 @@ def generate_signature(params, consumer_secret, token_secret):
 			elif x_val > y_val : return 1
 			else : return 0
 
-	signature_removed = {key : data for key,data in params.iteritems() if key is not 'oauth_signature'}
-	sorted_params = sorted(signature_removed.iteritems(), sort_func)
+	signature_removed = {key : data for key,data in params.items() if key is not 'oauth_signature'}
+	sorted_params = sorted(signature_removed.items(), key=cmp_to_key(sort_func))
 
-	encoded_param_list = ["%s=%s" % (urllib.quote(key),urllib.quote(val)) for (key,val) in sorted_params]
+	encoded_param_list = ['%s=%s' % (generate_quote(key),generate_quote(val)) for (key,val) in sorted_params]
 	
 	signature_base_list = [
 		'POST',
-		urllib.quote(url),
-		urllib.quote('&'.join(encoded_param_list))
+		quote(url),
+		quote('&'.join(encoded_param_list))
 	]
 	signature_base_string = '&'.join(signature_base_list)
 
-	key = "%s&%s" % (urllib.quote(consumer_secret),urllib.quote(token_secret))
+	key = "%s&%s" % (quote(consumer_secret),quote(token_secret))
 
-	return urllib.quote(base64.standard_b64encode(hmac.new(key,signature_base_string,hashlib.sha1).digest()))
+	return quote(base64.standard_b64encode(hmac.new(key.encode(),signature_base_string.encode(),hashlib.sha1).digest()))
 
 oauth_nonce = '%d' % random.randint(0, 2147483647)
 
@@ -54,7 +64,6 @@ consumer_secret = 'i6mx2zs2ecl8y7p'
 url_params = {
 	'oauth_consumer_key'	 : oauth_consumer_key,
 	'oauth_signature_method' : oauth_signature_method,
-	'oauth_signature'	 : 'replace_later',
 	'oauth_timestamp'	 : oauth_timestamp,
 	'oauth_nonce'		 : oauth_nonce,
 	'oauth_version'		 : oauth_version,
@@ -62,4 +71,9 @@ url_params = {
 
 url_params['oauth_signature'] = generate_signature(url_params, consumer_secret, '')
 
-encodedParams=urllib.urlencode(url_params)
+encodedParams = urlencode(url_params)
+
+header_params = url_params
+
+header_string_list = ['%s="%s"' % (header_key, header_value) for (header_key, header_value) in header_params.items()]
+auth_header = ', '.join(header_string_list)
