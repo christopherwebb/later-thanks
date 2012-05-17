@@ -11,7 +11,6 @@ tab_monitor.setProperties = function setProperties(into, from) {
 
 tab_monitor.setProperties(tab_monitor,
 {
-
     tab_div_name: function tab_div_name(tab_id)
     {
         return "tab_detail_" + tab_id;
@@ -82,9 +81,19 @@ tab_monitor.setProperties(tab_monitor,
 ,
     store_tabs_btn_clicked: function store_tabs_btn_clicked()
     {
-        var tabs_to_store = new Array(0);
+        var tab_array = new Array(0);
+        var tab_store = {
+            'title': 'not yet',
+            'creation': 'not yet',
+            'tabs': tab_array
+        };
         var tab_checkbox_list = document.getElementsByClassName("tab_select_checkbox");
 
+        if (tab_checkbox_list.length < 1)
+        {
+            return;
+        }
+       
         for (var i = 0,checkbox;checkbox = tab_checkbox_list[i];i++)
         {
             checkbox.getAttribute("type", "checkbox");
@@ -98,25 +107,24 @@ tab_monitor.setProperties(tab_monitor,
                 //test_div.textContent = "Tab " + checkbox.value + " is checked";
                 //document.body.appendChild(test_div);
 
-                chrome.tabs.get(checkbox.value, function(tab_details){
-                    tabs_to_store.push({
-                        'url': tab_details.url,
-                        'title': tab_details.title && "Untitled"
-                    });
+                chrome.tabs.get(Number(checkbox.value), function(tab_info){
+                    if (tab_info !== null)
+                    {
+                        tab_array.push({
+                            'url': tab_info.url,
+                            'title': tab_info.title || 'Untitled'
+                        });
+                    }
                 });
-
-                tab_to_store = chrome.(checkbox.value)
-
-                tabs_to_store
             }
         }
+        JSON.stringify(tab_store, null, '\t');
     }
 ,
     load_event: function load_event()
     {
         var store_tabs_btn = document.getElementById("store_tabs_btn");
         store_tabs_btn.addEventListener("click", tab_monitor.store_tabs_btn_clicked);
-
         //dropbox.getFolderContents('',tab_monitor.folder_contents())
     }
 ,
@@ -136,4 +144,3 @@ chrome.tabs.onRemoved.addListener(tab_monitor.event_tab_remove);
 chrome.extension.onRequest.addListener();
 
 document.addEventListener("DOMContentLoaded", tab_monitor.load_event);
-
