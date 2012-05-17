@@ -96,27 +96,15 @@ tab_monitor.setProperties(tab_monitor,
        
         for (var i = 0,checkbox;checkbox = tab_checkbox_list[i];i++)
         {
-            checkbox.getAttribute("type", "checkbox");
-            if (checkbox.checked)
-            {
-                //
-                //  Append tab details to save tab list
-                //
-                
-                //var test_div = document.createElement("div");
-                //test_div.textContent = "Tab " + checkbox.value + " is checked";
-                //document.body.appendChild(test_div);
-
-                chrome.tabs.get(Number(checkbox.value), function(tab_info){
-                    if (tab_info !== null)
-                    {
-                        tab_array.push({
-                            'url': tab_info.url,
-                            'title': tab_info.title || 'Untitled'
-                        });
-                    }
-                });
-            }
+            chrome.tabs.get(Number(checkbox.value), function(tab_info){
+                if (tab_info !== null)
+                {
+                    tab_array.push({
+                        'url': tab_info.url,
+                        'title': tab_info.title || 'Untitled'
+                    });
+                }
+            });
         }
         JSON.stringify(tab_store, null, '\t');
     }
