@@ -106,7 +106,7 @@ tab_monitor.setProperties(tab_monitor,
                 }
             });
         }
-        JSON.stringify(tab_store, null, '\t');
+        dropbox.uploadFile("upload00001.json", JSON.stringify(tab_store, null, '\t'));
     }
 ,
     load_event: function load_event()
@@ -122,6 +122,8 @@ tab_monitor.setProperties(tab_monitor,
             console.log("OAuth user permission granted")
             dropbox.setup();
     }
+,
+    dropbox_ready: function () {}
 
 });
 
@@ -129,6 +131,6 @@ var tab_query = new Object();
 chrome.tabs.query(tab_query, tab_monitor.get_tabs);
 chrome.tabs.onUpdated.addListener(tab_monitor.event_tab_update);
 chrome.tabs.onRemoved.addListener(tab_monitor.event_tab_remove);
-chrome.extension.onRequest.addListener();
+chrome.extension.onRequest.addListener(tab_monitor.request_received);
 
 document.addEventListener("DOMContentLoaded", tab_monitor.load_event);

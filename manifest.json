@@ -9,8 +9,9 @@
     }
   },
   "permissions": [
-    "https://api.dropbox.com/",
+    "https://api.dropbox.com/1/",
     "https://www.dropbox.com/1/",
+    "https://api-content.dropbox.com/1/",
     "tabs"
   ],
  "web_accessible_resources": [

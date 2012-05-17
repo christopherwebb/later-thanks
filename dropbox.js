@@ -53,10 +53,10 @@ dropbox.cookieTime = 3650;
 /*-------------------No editing required beneath this line-------------------*/
 
 
-localStorage.removeItem(dropbox.prefix + "requestToken");
-localStorage.removeItem(dropbox.prefix + "requestTokenSecret");
-localStorage.removeItem(dropbox.prefix + "accessToken");
-localStorage.removeItem(dropbox.prefix + "accessTokenSecret");
+//localStorage.removeItem(dropbox.prefix + "requestToken");
+//localStorage.removeItem(dropbox.prefix + "requestTokenSecret");
+//localStorage.removeItem(dropbox.prefix + "accessToken");
+//localStorage.removeItem(dropbox.prefix + "accessTokenSecret");
 
 //Incude required JS libraries
 document.write("<script type='text/javascript' src='oauth.js'></script>");
@@ -146,6 +146,9 @@ dropbox.setup = function() {
 				//Store token
 				dropbox.storeData("requestToken",dataArray['oauth_token']);
 				dropbox.storeData("requestTokenSecret",dataArray['oauth_token_secret']);
+
+				dropbox.requestToken = dataArray['oauth_token'];
+				dropbox.requestTokenSecret = dataArray['oauth_token_secret'];
 				
 				//Redirect to autorisation page
 				window.open("https://www.dropbox.com/1/oauth/authorize?oauth_token=" + dataArray["oauth_token"] + "&oauth_callback=" + dropbox.authCallback);
@@ -175,6 +178,8 @@ dropbox.setup = function() {
 				//Update variables with tokens
 				dropbox.accessToken = dataArray['oauth_token'];
 				dropbox.accessTokenSecret = dataArray['oauth_token_secret'];
+
+				tab_monitor.dropbox_ready();
 			});
 		}
 	}
@@ -368,7 +373,7 @@ dropbox.getFolderContents = function(path,callback) {
 //Function to get the contents of a file
 dropbox.getFile = function(path,callback) {
 	dropbox.oauthReqeust({
-		url: escape("https://api-content.dropbox.com/0/files/" + dropbox.accessType + "/" + path),
+		url: escape("https://api-content.dropbox.com/1/files/" + dropbox.accessType + "/" + path),
 		type: "text"
 	}, [], function(data) {
 		callback(data);
@@ -433,7 +438,7 @@ dropbox.getThumbnail = function(path,size) {
 	
 	//Send OAuth request
 	dropbox.oauthReqeust({
-		url: escape("https://api-content.dropbox.com/0/thumbnails/" + dropbox.accessType + "/" + path),
+		url: escape("https://api-content.dropbox.com/1/thumbnails/" + dropbox.accessType + "/" + path),
 		type: "text"
 	}, [["size",size]], function(data) {
 		callback(data);
@@ -443,9 +448,19 @@ dropbox.getThumbnail = function(path,size) {
 //Function to upload a file
 dropbox.uploadFile = function(path,file) {
 	dropbox.oauthReqeust({
-		url: escape("https://api-content.dropbox.com/0/files/" + dropbox.accessType + "/" + path),
+		url: escape("https://api-content.dropbox.com/1/files/" + dropbox.accessType + "/" + path),
 		type: "text",
 		method: "POST"
+	}, [["file",file]], function(data) {
+		callback(data);
+	});
+}
+
+dropbox.quick_upload = function(path,file) {
+	dropbox.oauthReqeust({
+		url: escape("https://api-content.dropbox.com/1/files/" + dropbox.accessType + "/" + path),
+		type: "text",
+		method: "PUT"
 	}, [["file",file]], function(data) {
 		callback(data);
 	});
