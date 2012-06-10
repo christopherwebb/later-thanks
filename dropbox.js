@@ -256,7 +256,31 @@ dropbox.oauthReqeust = function(param1,param2,callback) {
 		error: function(a,b,c) {
 			//Something went wrong. Feel free to add a better error message if you want
 			alert("Error");
-		}
+		},
+
+		statusCode: {
+            400: function() {
+      	        alert("400");
+      	    },
+      	    401: function() {
+      	        alert("401");
+      	    },
+      	    403: function() {
+      	        alert("403");
+      	    },
+      	    404: function() {
+      	        alert("404");
+      	    },
+      	    405: function() {
+      	        alert("405");
+      	    },
+      	    503: function() {
+      	        alert("503");
+      	    },
+      	    507: function() {
+      	        alert("507");
+      	    }
+      	}
 	});
 }
 
@@ -373,7 +397,7 @@ dropbox.getFolderContents = function(path,callback) {
 //Function to get the contents of a file
 dropbox.getFile = function(path,callback) {
 	dropbox.oauthReqeust({
-		url: escape("https://api-content.dropbox.com/1/files/" + dropbox.accessType + "/" + path),
+		url: "https://api-content.dropbox.com/1/files/" + dropbox.accessType + "/" + path,
 		type: "text"
 	}, [], function(data) {
 		callback(data);
@@ -381,7 +405,7 @@ dropbox.getFile = function(path,callback) {
 }
 
 //Function to move a file/folder to a new location
-dropbox.getFile = function(from,to,callback) {
+dropbox.moveFile = function(from,to,callback) {
 	dropbox.oauthReqeust({
 		url: "https://api.dropbox.com/1/fileops/move"
 	}, [
@@ -445,23 +469,79 @@ dropbox.getThumbnail = function(path,size) {
 	});
 }
 
-//Function to upload a file
-dropbox.uploadFile = function(path,file) {
-	dropbox.oauthReqeust({
-		url: escape("https://api-content.dropbox.com/1/files/" + dropbox.accessType + "/" + path),
+dropbox.quick_upload = function(path,file) {
+	dropbox.oauth_non_Ajax({
+		url: "https://api-content.dropbox.com/1/files_put/" + dropbox.accessType + "/" + path,
 		type: "text",
-		method: "POST"
-	}, [["file",file]], function(data) {
+		method: "PUT"
+	}, file, function(data) {
 		callback(data);
 	});
 }
 
-dropbox.quick_upload = function(path,file) {
-	dropbox.oauthReqeust({
-		url: escape("https://api-content.dropbox.com/1/files/" + dropbox.accessType + "/" + path),
-		type: "text",
-		method: "PUT"
-	}, [["file",file]], function(data) {
-		callback(data);
-	});
+dropbox.oauth_non_Ajax = function (param1, filedata, callback)
+{
+	if (!param1.token) {
+		param1.token = dropbox.accessToken;
+	}
+	if (!param1.tokenSecret) {
+		param1.tokenSecret = dropbox.accessTokenSecret;
+	}
+	
+	//If type isn't defined, it's JSON
+	//if (!param1.type) {
+	//	param1.type = "json";
+	//}
+	
+	//If method isn't defined, assume it's GET
+	if (!param1.method) {
+		param1.method = "PUT";
+	}
+
+	//Define the accessor
+	accessor = {
+		consumerSecret: dropbox.consumerSecret,
+	};
+	
+	//Outline the message
+	message = {
+		action: escape(param1.url),
+	    method: param1.method,
+	    parameters: [
+	      	["oauth_consumer_key", dropbox.consumerKey],
+	      	["oauth_signature_method","PLAINTEXT"]
+	  	]
+	};
+
+	//Only add tokens to the request if they're wanted (vars not passed as true)
+	if (param1.token != true) {
+		message.parameters.push(["oauth_token",param1.token]);
+	}
+	if (param1.tokenSecret != true) {
+		accessor.tokenSecret = param1.tokenSecret;
+	}
+	
+	//If given, append request-specific parameters to the OAuth request
+	//for (i in param2) {
+	//	message.parameters.push(param2[i]);
+	//}
+	
+	//Timestamp and sign the OAuth request
+	OAuth.setTimestampAndNonce(message);
+	OAuth.SignatureMethod.sign(message, accessor);
+
+	var req = new XMLHttpRequest();
+	var url_for_dropbox = OAuth.addToURL(param1.url, message.parameters);
+	req.open("PUT", url_for_dropbox , false);
+	try
+	{
+		req.send(filedata);
+	}
+	catch (error)
+	{
+		console.log("Return error: " + error);
+	}
+	//req.send(filedata);
+
+	console.log("Return status: " + req.status);
 }

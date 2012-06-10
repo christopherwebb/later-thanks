@@ -54,7 +54,7 @@ tab_monitor.setProperties(tab_monitor,
 ,
     event_tab_update: function event_tab_update(tabId, changeInfo, tab)
     {
-        if (changeInfo.url == undefined)
+        if (changeInfo.url === undefined)
             return;
 
         // Look for already existing tab entry
@@ -81,10 +81,15 @@ tab_monitor.setProperties(tab_monitor,
 ,
     store_tabs_btn_clicked: function store_tabs_btn_clicked()
     {
+    //    dropbox.getFile('Apps/later-thanks/TestFile', 'Apps/later-thanks/TestFile.txt',  function(data) {
+    //        console.log(data);
+    //    })
+        var today = Date.now();
+        var date_title = today.getUTCFullYear() + '/' + today.getUTCMonth() + '/' + today.getUTCDate();
         var tab_array = new Array(0);
         var tab_store = {
-            'title': 'not yet',
-            'creation': 'not yet',
+            'title': date_title,
+            'date': today.getTime(),
             'tabs': tab_array
         };
         var tab_checkbox_list = document.getElementsByClassName("tab_select_checkbox");
@@ -96,17 +101,25 @@ tab_monitor.setProperties(tab_monitor,
        
         for (var i = 0,checkbox;checkbox = tab_checkbox_list[i];i++)
         {
-            chrome.tabs.get(Number(checkbox.value), function(tab_info){
-                if (tab_info !== null)
-                {
-                    tab_array.push({
-                        'url': tab_info.url,
-                        'title': tab_info.title || 'Untitled'
-                    });
-                }
-            });
+            checkbox.getAttribute("type", "checkbox");
+            if (checkbox.checked)
+            {
+                //
+                //  Append tab details to save tab list
+                //
+                chrome.tabs.get(Number(checkbox.value), function(tab_info){
+                    if (tab_info !== null)
+                    {
+                        tab_array.push({
+                            'url': tab_info.url,
+                            'title': tab_info.title || 'Untitled'
+                        });
+                    }
+                });
+            }
         }
-        dropbox.uploadFile("upload00001.json", JSON.stringify(tab_store, null, '\t'));
+        tab_store['tabs'] = tab_array;
+        dropbox.quick_upload("upload00001.json", JSON.stringify(tab_store, null, '\t'));
     }
 ,
     load_event: function load_event()

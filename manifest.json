@@ -15,6 +15,8 @@
     "tabs"
   ],
  "web_accessible_resources": [
-    "oauth_callback.html"
+    "oauth_callback.html",
+    "monitor.js",
+    "dropbox.js"
   ]
 }
