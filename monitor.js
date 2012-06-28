@@ -198,6 +198,7 @@ tab_monitor.setProperties(tab_monitor,
     {
         var store_tabs_btn = document.getElementById("store_tabs_btn");
         store_tabs_btn.addEventListener("click", tab_monitor.store_tabs_btn_clicked);
+        $('#manual-button').clicked(tab_monitor.manual_input);
         //dropbox.getFolderContents('',tab_monitor.folder_contents())
     }
 ,
@@ -209,6 +210,18 @@ tab_monitor.setProperties(tab_monitor,
     }
 ,
     dropbox_ready: function () {}
+,
+    manual_input: function ()
+    {
+        var raw_entries = $('.manual-submission textarea').val().split('\n');
+        var manual_entries = []
+        for (var i = 0,entry;entry = raw_entries[i];i++)
+        {
+            manual_entries
+
+        }
+    }
+
 });
 
 var tab_query = new Object();
