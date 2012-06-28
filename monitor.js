@@ -217,7 +217,11 @@ tab_monitor.setProperties(tab_monitor,
         var manual_entries = []
         for (var i = 0,entry;entry = raw_entries[i];i++)
         {
-            manual_entries
+            if (entry.length > 0)
+            {
+                manual_entries.push({'url': entry});
+            }
+            
 
         }
     }
