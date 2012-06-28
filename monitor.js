@@ -97,7 +97,7 @@ tab_monitor.setProperties(tab_monitor,
             return r;
         }
 
-        var filename = date.getUTCFullYear() + pad(date.getUTCMonth()) + pad(date.getUTCDate()) + ".json";
+        var filename = date.getUTCFullYear() + pad(date.getUTCMonth() + 1) + pad(date.getUTCDate()) + ".json";
         return filename;
     }
 ,
@@ -121,42 +121,7 @@ tab_monitor.setProperties(tab_monitor,
 ,
     store_tabs_via_date: function store_tabs_via_date()
     {
-        tab_monitor.get_json(
-            tab_monitor.date_filename(new Date(Date.now())),
-            function(filename,data){
-                tab_monitor.save_tabs(filename, data);
-            },
-            function(filename,error){
-                if (error.jqXHR.status === 404) { tab_monitor.save_tabs(filename); }
-                else { throw "File error - not due to 404"; }
-            }
-        );
-    }
-,
-    save_tabs: function save_tabs(save_to_name, preexisting_data)
-    {
-        var today = new Date(Date.now());
-        var date_title = today.getUTCFullYear() + '/' + today.getUTCMonth() + '/' + today.getUTCDate();
         var tab_array = new Array(0);
-        var tab_store = {
-            'title': date_title,
-            'date': today,
-            'version': 1.0,
-            'type': 'daily',
-            'tabs': [],
-        };
-
-        if (preexisting_data !== undefined)
-        {
-            try
-            {
-                var parsed_preexisting_data = JSON.parse(preexisting_data);
-                tab_store.tabs = parsed_preexisting_data.tabs;
-            }
-            catch (e)
-            {}
-        }
-
         var tab_checkbox_list = document.getElementsByClassName("tab_select_checkbox");
 
         if (tab_checkbox_list.length < 1)
@@ -183,8 +148,47 @@ tab_monitor.setProperties(tab_monitor,
                 });
             }
         }
+
+        if (tab_array.length < 1)
+            return;
+
+        tab_monitor.get_json(
+            tab_monitor.date_filename(new Date(Date.now())),
+            function(filename,data){
+                tab_monitor.save_tabs(filename, data, tab_array);
+            },
+            function(filename,error){
+                if (error.jqXHR.status === 404) { tab_monitor.save_tabs(filename, undefined, tab_array); }
+                else { throw "File error - not due to 404"; }
+            }
+        );
+    }
+,
+    save_tabs: function save_tabs(save_to_name, preexisting_data, new_data)
+    {
+        var today = new Date(Date.now());
+        var date_title = today.getUTCFullYear() + '/' + (today.getUTCMonth() + 1) + '/' + today.getUTCDate();
+        var tab_array = new Array(0);
+        var tab_store = {
+            'title': date_title,
+            'date': today,
+            'version': 1.0,
+            'type': 'daily',
+            'tabs': [],
+        };
+
+        if (preexisting_data !== undefined)
+        {
+            try
+            {
+                var parsed_preexisting_data = JSON.parse(preexisting_data);
+                tab_store.tabs = parsed_preexisting_data.tabs;
+            }
+            catch (e)
+            {}
+        }
         
-        if (tab_array.length > 0)
+        if (new_data.length > 0)
         {
             tab_store['tabs'].push({
                     'pushed': today,
