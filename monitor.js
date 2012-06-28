@@ -79,19 +79,84 @@ tab_monitor.setProperties(tab_monitor,
         document.body.removeChild(removed_tab_div);
     }
 ,
+    check_folder_contents: function check_folder_contents()
+    {
+        dropbox.getMetadata('', function(data)
+        {
+            var metadata = data;
+        });
+    }
+,
+    date_filename: function date_filename(date)
+    {
+        function pad(number) {
+            var r = String(number);
+            if ( r.length === 1 ) {
+                r = '0' + r;
+            }
+            return r;
+        }
+
+        var filename = date.getUTCFullYear() + pad(date.getUTCMonth()) + pad(date.getUTCDate()) + ".json";
+        return filename;
+    }
+,
+    get_json: function get_json(filename, success, failure)
+    {
+        dropbox.getFile(
+            filename,
+            function(data) {
+                success(filename, data);
+            },
+            function(error) {
+                failure(filename, error);
+            }
+        );
+    }
+,
     store_tabs_btn_clicked: function store_tabs_btn_clicked()
     {
-    //    dropbox.getFile('Apps/later-thanks/TestFile', 'Apps/later-thanks/TestFile.txt',  function(data) {
-    //        console.log(data);
-    //    })
-        var today = Date.now();
+        tab_monitor.store_tabs_via_date();
+    }
+,
+    store_tabs_via_date: function store_tabs_via_date()
+    {
+        tab_monitor.get_json(
+            tab_monitor.date_filename(new Date(Date.now())),
+            function(filename,data){
+                tab_monitor.save_tabs(filename, data);
+            },
+            function(filename,error){
+                if (error.jqXHR.status === 404) { tab_monitor.save_tabs(filename); }
+                else { throw "File error - not due to 404"; }
+            }
+        );
+    }
+,
+    save_tabs: function save_tabs(save_to_name, preexisting_data)
+    {
+        var today = new Date(Date.now());
         var date_title = today.getUTCFullYear() + '/' + today.getUTCMonth() + '/' + today.getUTCDate();
         var tab_array = new Array(0);
         var tab_store = {
             'title': date_title,
-            'date': today.getTime(),
-            'tabs': tab_array
+            'date': today,
+            'version': 1.0,
+            'type': 'daily',
+            'tabs': [],
         };
+
+        if (preexisting_data !== undefined)
+        {
+            try
+            {
+                var parsed_preexisting_data = JSON.parse(preexisting_data);
+                tab_store.tabs = parsed_preexisting_data.tabs;
+            }
+            catch (e)
+            {}
+        }
+
         var tab_checkbox_list = document.getElementsByClassName("tab_select_checkbox");
 
         if (tab_checkbox_list.length < 1)
@@ -118,8 +183,15 @@ tab_monitor.setProperties(tab_monitor,
                 });
             }
         }
-        tab_store['tabs'] = tab_array;
-        dropbox.quick_upload("upload00001.json", JSON.stringify(tab_store, null, '\t'));
+        
+        if (tab_array.length > 0)
+        {
+            tab_store['tabs'].push({
+                    'pushed': today,
+                    'tabs': tab_array
+            }) ;
+            dropbox.quick_upload(save_to_name, JSON.stringify(tab_store), true);
+        }
     }
 ,
     load_event: function load_event()
@@ -137,7 +209,6 @@ tab_monitor.setProperties(tab_monitor,
     }
 ,
     dropbox_ready: function () {}
-
 });
 
 var tab_query = new Object();
