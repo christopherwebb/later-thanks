@@ -192,7 +192,7 @@ tab_monitor.setProperties(tab_monitor,
         {
             tab_store['tabs'].push({
                     'pushed': today,
-                    'tabs': tab_array
+                    'tabs': new_data
             }) ;
             dropbox.quick_upload(save_to_name, JSON.stringify(tab_store), true);
         }
