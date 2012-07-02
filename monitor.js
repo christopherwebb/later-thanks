@@ -97,7 +97,7 @@ tab_monitor.setProperties(tab_monitor,
             return r;
         }
 
-        var filename = date.getUTCFullYear() + pad(date.getUTCMonth()) + pad(date.getUTCDate()) + ".json";
+        var filename = date.getUTCFullYear() + pad(date.getUTCMonth() + 1) + pad(date.getUTCDate()) + ".json";
         return filename;
     }
 ,
@@ -121,22 +121,77 @@ tab_monitor.setProperties(tab_monitor,
 ,
     store_tabs_via_date: function store_tabs_via_date()
     {
-        tab_monitor.get_json(
-            tab_monitor.date_filename(new Date(Date.now())),
-            function(filename,data){
-                tab_monitor.save_tabs(filename, data);
+        var tab_array = new Array(0);
+
+        tab_monitor.process_selection(
+            function(){
+                if (tab_array.length < 1)
+                    return;
+
+                tab_monitor.get_json(
+                    tab_monitor.date_filename(new Date(Date.now())),
+                    function(filename,data){
+                        tab_monitor.save_tabs(filename, data, tab_array);
+                    },
+                    function(filename,error){
+                        if (error.jqXHR.status === 404) { tab_monitor.save_tabs(filename, undefined, tab_array); }
+                        else { throw "File error - not due to 404"; }
+                    }
+                );
             },
-            function(filename,error){
-                if (error.jqXHR.status === 404) { tab_monitor.save_tabs(filename); }
-                else { throw "File error - not due to 404"; }
+            function(tab_info){
+                if (tab_info !== null)
+                {
+                    tab_array.push({
+                        'url': tab_info.url,
+                        'title': tab_info.title || 'Untitled'
+                    });
+                }
             }
         );
     }
 ,
-    save_tabs: function save_tabs(save_to_name, preexisting_data)
+    process_selection: function process_selection(on_complete, tab_checked, tab_unchecked)
+    {
+        var tab_checkbox_list = $('.tab_select_checkbox');
+        
+        var recurse = function(checkbox_list) {
+            if (checkbox_list.length > 0) {
+                if (checkbox_list[0].checked && tab_checked) {
+                    //
+                    //  Append tab details to save tab list
+                    //
+                    chrome.tabs.get(Number(checkbox_list[0].value), function(tab_info) {
+                        tab_checked(tab_info);
+                        recurse(checkbox_list.slice(1));
+                    });
+                }
+                else if (!checkbox_list[0].checked && tab_unchecked) {
+                    //
+                    //  Append tab details to save tab list
+                    //
+                    chrome.tabs.get(Number(checkbox_list[0].value), function(tab_info) {
+                        tab_unchecked(tab_info);
+                        recurse(checkbox_list.slice(1));
+                    });
+                }
+                else
+                {
+                    recurse(checkbox_list.slice(1));
+                }
+            }
+            else {
+                on_complete();
+            }
+        }
+
+        recurse(tab_checkbox_list);
+    }
+,
+    save_tabs: function save_tabs(save_to_name, preexisting_data, new_data)
     {
         var today = new Date(Date.now());
-        var date_title = today.getUTCFullYear() + '/' + today.getUTCMonth() + '/' + today.getUTCDate();
+        var date_title = today.getUTCFullYear() + '/' + (today.getUTCMonth() + 1) + '/' + today.getUTCDate();
         var tab_array = new Array(0);
         var tab_store = {
             'title': date_title,
@@ -156,39 +211,12 @@ tab_monitor.setProperties(tab_monitor,
             catch (e)
             {}
         }
-
-        var tab_checkbox_list = document.getElementsByClassName("tab_select_checkbox");
-
-        if (tab_checkbox_list.length < 1)
-        {
-            return;
-        }
-       
-        for (var i = 0,checkbox;checkbox = tab_checkbox_list[i];i++)
-        {
-            checkbox.getAttribute("type", "checkbox");
-            if (checkbox.checked)
-            {
-                //
-                //  Append tab details to save tab list
-                //
-                chrome.tabs.get(Number(checkbox.value), function(tab_info){
-                    if (tab_info !== null)
-                    {
-                        tab_array.push({
-                            'url': tab_info.url,
-                            'title': tab_info.title || 'Untitled'
-                        });
-                    }
-                });
-            }
-        }
         
-        if (tab_array.length > 0)
+        if (new_data.length > 0)
         {
             tab_store['tabs'].push({
                     'pushed': today,
-                    'tabs': tab_array
+                    'tabs': new_data
             }) ;
             dropbox.quick_upload(save_to_name, JSON.stringify(tab_store), true);
         }
@@ -196,9 +224,8 @@ tab_monitor.setProperties(tab_monitor,
 ,
     load_event: function load_event()
     {
-        var store_tabs_btn = document.getElementById("store_tabs_btn");
-        store_tabs_btn.addEventListener("click", tab_monitor.store_tabs_btn_clicked);
-        $('#manual-button').clicked(tab_monitor.manual_input);
+        $('#store_tabs_btn').click(tab_monitor.store_tabs_btn_clicked);
+        $('#manual-button').click(tab_monitor.manual_input);
         //dropbox.getFolderContents('',tab_monitor.folder_contents())
     }
 ,
