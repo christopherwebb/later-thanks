@@ -225,7 +225,7 @@ tab_monitor.setProperties(tab_monitor,
     load_event: function load_event()
     {
         $('#store_tabs_btn').click(tab_monitor.store_tabs_btn_clicked);
-        $('#manual-button').click(tab_monitor.manual_input);
+        $('#manual_button').click(tab_monitor.manual_input);
         //dropbox.getFolderContents('',tab_monitor.folder_contents())
     }
 ,
@@ -251,7 +251,6 @@ tab_monitor.setProperties(tab_monitor,
                 manual_entries.push({'url': entry});
             }
         }
-        tab_monitor.save_tabs(undefined, tab_array);
 
         if (manual_entries.length < 1)
             return;
@@ -259,10 +258,10 @@ tab_monitor.setProperties(tab_monitor,
         tab_monitor.get_json(
             tab_monitor.date_filename(date),
             function(filename,data){
-                tab_monitor.save_tabs(filename, data, tab_array);
+                tab_monitor.save_tabs(filename, data, manual_entries);
             },
             function(filename,error){
-                if (error.jqXHR.status === 404) { tab_monitor.save_tabs(filename, undefined, tab_array); }
+                if (error.jqXHR.status === 404) { tab_monitor.save_tabs(filename, undefined, manual_entries); }
                 else { throw "File error - not due to 404"; }
             }
         );
