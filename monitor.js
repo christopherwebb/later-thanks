@@ -241,16 +241,31 @@ tab_monitor.setProperties(tab_monitor,
     manual_input: function ()
     {
         var raw_entries = $('.manual-submission textarea').val().split('\n');
-        var manual_entries = []
-        for (var i = 0,entry;entry = raw_entries[i];i++)
+        var manual_entries = [];
+        raw_date = raw_entries[0].split('/');
+        date = new Date(raw_date[2],raw_date[1] - 1,raw_date[0]);
+        for (var i = 1,entry;entry = raw_entries[i];i++)
         {
             if (entry.length > 0)
             {
                 manual_entries.push({'url': entry});
             }
-            
-
         }
+        tab_monitor.save_tabs(undefined, tab_array);
+
+        if (manual_entries.length < 1)
+            return;
+
+        tab_monitor.get_json(
+            tab_monitor.date_filename(date),
+            function(filename,data){
+                tab_monitor.save_tabs(filename, data, tab_array);
+            },
+            function(filename,error){
+                if (error.jqXHR.status === 404) { tab_monitor.save_tabs(filename, undefined, tab_array); }
+                else { throw "File error - not due to 404"; }
+            }
+        );
     }
 
 });
