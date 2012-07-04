@@ -527,16 +527,9 @@ dropbox.oauth_non_Ajax = function (param1, param2, filedata, callback)
 
 	var req = new XMLHttpRequest();
 	var url_for_dropbox = OAuth.addToURL(param1.url, message.parameters);
-	req.open("PUT", url_for_dropbox , false);
-	try
-	{
-		req.send(filedata);
-	}
-	catch (error)
-	{
-		console.log("Return error: " + error);
-	}
-	//req.send(filedata);
-
-	console.log("Return status: " + req.status);
+	req.open("PUT", url_for_dropbox , true);
+	req.onreadystatechange = function(hello) {
+		console.log("Request state change: " + req.readyState)
+	};
+	req.send(filedata);
 }
