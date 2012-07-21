@@ -321,57 +321,66 @@ dropbox.getMetadata = function(path,callback) {
 }
 
 //Function to get a list of the contents of a directory
-dropbox.getFolderContents = function(path,callback) {
+dropbox.getFolderContents = function(path,callback,callback_error) {
 	//If caching is enabled, get the hash of the requested folder
-	if (dropbox.cache == true) {
-		//Get cached data
-		hash = dropbox.getData("cache." + path);
-		
-		//If cached data exists
-		if (hash != "null") {
-			//Parse the cached data and extract the hash
-			hash = jQuery.parseJSON(hash).hash;
-		} else {
-			//Set to a blank hash
-			hash = "00000000000000000000000000000000";
-		}
-	} else {
-		//Set to a blank hash
-		hash = "00000000000000000000000000000000";
-	}
+	//if (dropbox.cache == true) {
+	//	//Get cached data
+	//	hash = dropbox.getData("cache." + path);
+	//	
+	//	//If cached data exists
+	//	if (hash != "null") {
+	//		//Parse the cached data and extract the hash
+	//		try
+    //      {
+    //           hash = jQuery.parseJSON(hash).hash;
+    //        }
+    //        catch (e)
+    //        {
+    //        	hash = "00000000000000000000000000000000";
+    //        }
+	//	} else {
+	//		//Set to a blank hash
+	//		hash = "00000000000000000000000000000000";
+	//	}
+	//} else {
+	//	//Set to a blank hash
+	//	hash = "00000000000000000000000000000000";
+	//}
 	
 	//Send the OAuth request
-	dropbox.oauthReqeust({
-		url: "https://api.dropbox.com/1/metadata/" + dropbox.accessType + "/" + path,
-		type: "text"
-	}, [
-		["list","true"],
-		["status_in_response","true"],
-		["hash",hash]
-	], function(data) {
-		//If caching is enabled, check if the folder contents have changed
-		if (dropbox.cache == true) {
-			if (jQuery.parseJSON(data).status == 304) {
-				//Contents haven't changed - return cached data instead
-				data = dropbox.getData("cache." + path);
-			} else {
-				//Strip out parent JSON object
-				data = data.substr(1);
-				while (data.charAt(0) != "{") data = data.substr(1);
-				data = data.substr(0,data.length-1);
-				while (data.charAt(data.length-1) != "}") data = data.substr(0,data.length-1);
-				
-				//Contents have changed - cache them for later
-				dropbox.storeData("cache." + path,data);
-			}
+	dropbox.oauthReqeust(
+		{
+			url: "https://api.dropbox.com/1/metadata/" + dropbox.accessType + "/" + path
+		},
+		[
+			["list","true"],
+//			["hash",hash]
+		],
+		function(data) {
+			//If caching is enabled, check if the folder contents have changed
+			//if (dropbox.cache == true) {
+			//	if (jQuery.parseJSON(data).status == 304) {
+			//		//Contents haven't changed - return cached data instead
+			//		data = dropbox.getData("cache." + path);
+			//	} else {
+			//		//Strip out parent JSON object
+			//		data = data.substr(1);
+			//		while (data.charAt(0) != "{") data = data.substr(1);
+			//		data = data.substr(0,data.length-1);
+			//		while (data.charAt(data.length-1) != "}") data = data.substr(0,data.length-1);
+			//		
+					//Contents have changed - cache them for later
+			//		dropbox.storeData("cache." + path,data);
+			//	}
+			//}
+			
+			//Run the callback
+			callback(data);
+		},
+		function(error) {
+			callback_error(error);
 		}
-		
-		//Parse the data as JSON
-		data = jQuery.parseJSON(data);
-		
-		//Run the callback
-		callback(data);
-	});
+	);
 }
 
 //Function to get the contents of a file

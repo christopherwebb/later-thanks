@@ -219,6 +219,7 @@ tab_monitor.setProperties(tab_monitor,
                     'tabs': new_data
             }) ;
             dropbox.quick_upload(save_to_name, JSON.stringify(tab_store), true);
+            //$('#messages').
         }
     }
 ,
@@ -227,6 +228,7 @@ tab_monitor.setProperties(tab_monitor,
         $('#store_tabs_btn').click(tab_monitor.store_tabs_btn_clicked);
         $('#manual_button').click(tab_monitor.manual_input);
         //dropbox.getFolderContents('',tab_monitor.folder_contents())
+        tab_monitor.loadStoredTabs();
     }
 ,
     request_received: function (request, sender, sendResponse)
@@ -266,7 +268,39 @@ tab_monitor.setProperties(tab_monitor,
             }
         );
     }
+,
+    loadStoredTabs: function ()
+    {
+        dropbox.getFolderContents(
+            '',
+            function (data) {
+                for (var iter = 0, entry;entry = data['contents'][iter];iter++) {
+                    if (!entry['is_dir']) {
+                        tab_monitor.create_saved_entry(entry);
+                    }
+                }
+            },
+            function (error) {
+                console.log('Error accessing folder contents.');
+            }
+        );
+    }
+,
+    create_saved_entry: function (entry)
+    {
+        var search_exp = new RegExp('[A-Za-z0-9 -]+.json$');
+        var extracted;
+        if (!(extracted = search_exp.exec(entry['path'])))
+        {
+            return;
+        }
+        var parsed_name = extracted[0].replace(RegExp('.json$'),'');
 
+        var id_name = escape('saved_json_' + parsed_name);
+        var id_name_query = '[id=\'' + id_name + '\']';
+        $('#dropbox_list').append('<tr id=\"' + id_name +'\"></tr');
+        $(id_name_query).append('<td>' + entry['path'] + '</td>');
+    }
 });
 
 var tab_query = new Object();
