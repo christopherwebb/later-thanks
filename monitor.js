@@ -116,10 +116,19 @@ tab_monitor.setProperties(tab_monitor,
 ,
     store_tabs_btn_clicked: function store_tabs_btn_clicked()
     {
-        tab_monitor.store_tabs_via_date();
+        tab_monitor.store_tabs_via_date({});
     }
 ,
-    store_tabs_via_date: function store_tabs_via_date()
+    store_tabs_close_btn_clicked: function store_tabs_close_btn_clicked()
+    {
+        var on_success = function() { tab_monitor.close_selected_tabs(); };
+
+        tab_monitor.store_tabs_via_date({
+            'on_success': on_success
+        });
+    }
+,
+    store_tabs_via_date: function store_tabs_via_date(callback)
     {
         var tab_array = new Array(0);
 
@@ -131,10 +140,10 @@ tab_monitor.setProperties(tab_monitor,
                 tab_monitor.get_json(
                     tab_monitor.date_filename(new Date(Date.now())),
                     function(filename,data){
-                        tab_monitor.save_tabs(filename, data, tab_array);
+                        tab_monitor.save_tabs(filename, data, tab_array, callback);
                     },
                     function(filename,error){
-                        if (error.jqXHR.status === 404) { tab_monitor.save_tabs(filename, undefined, tab_array); }
+                        if (error.jqXHR.status === 404) { tab_monitor.save_tabs(filename, undefined, tab_array, callback); }
                         else { throw "File error - not due to 404"; }
                     }
                 );
@@ -159,7 +168,7 @@ tab_monitor.setProperties(tab_monitor,
             if (checkbox_list.length > 0) {
                 if (checkbox_list[0].checked && tab_checked) {
                     //
-                    //  Append tab details to save tab list
+                    //  Tab is checked
                     //
                     chrome.tabs.get(Number(checkbox_list[0].value), function(tab_info) {
                         tab_checked(tab_info);
@@ -168,7 +177,7 @@ tab_monitor.setProperties(tab_monitor,
                 }
                 else if (!checkbox_list[0].checked && tab_unchecked) {
                     //
-                    //  Append tab details to save tab list
+                    //  Tab is unchecked
                     //
                     chrome.tabs.get(Number(checkbox_list[0].value), function(tab_info) {
                         tab_unchecked(tab_info);
@@ -188,7 +197,7 @@ tab_monitor.setProperties(tab_monitor,
         recurse(tab_checkbox_list);
     }
 ,
-    save_tabs: function save_tabs(save_to_name, preexisting_data, new_data)
+    save_tabs: function save_tabs(save_to_name, preexisting_data, new_data, callback)
     {
         var today = new Date(Date.now());
         var date_title = today.getUTCFullYear() + '/' + (today.getUTCMonth() + 1) + '/' + today.getUTCDate();
@@ -215,17 +224,61 @@ tab_monitor.setProperties(tab_monitor,
         if (new_data.length > 0)
         {
             tab_store['tabs'].push({
-                    'pushed': today,
-                    'tabs': new_data
-            }) ;
-            dropbox.quick_upload(save_to_name, JSON.stringify(tab_store), true);
+                'pushed': today,
+                'tabs': new_data
+            });
+            dropbox.quick_upload(save_to_name, JSON.stringify(tab_store), true, function (results) {
+                var weird_failure_rsp = function () {
+                    tab_monitor.display_message("Upload apparently successful, but response seems alarming");
+                    if (callback['on_failure']) { callback.on_failure(results); }
+                }
+                // On dropbox result
+                if (results.status === 200)
+                {
+                    try {
+                        if (JSON.parse(results.response)['rev'] === undefined)
+                            weird_failure_rsp();
+                        else {
+                            tab_monitor.display_message("Upload successful");
+                            if (callback['on_success']) { callback.on_success(JSON.parse(results.response)) };
+                        }
+                    }
+                    catch (e) {
+                        weird_failure_rsp();
+                    }
+                }
+                else
+                {
+                    tab_monitor.display_message("Upload unsuccessful");
+                    callback.on_failure(results);
+                }
+            });
             //$('#messages').
         }
+    }
+,
+    close_selected_tabs: function close_selected_tabs ()
+    {
+        var tab_id_array = new Array(0);
+
+        // Has to be the slowest way of closing tabs, ever. Oh well. The function was there :p
+        tab_monitor.process_selection(
+            function() {
+                chrome.tabs.remove(tab_id_array);
+            },
+            function(tab_info) {
+                if (tab_info !== null)
+                {
+                    tab_id_array.push(tab_info.id);
+                }
+            }
+        );
     }
 ,
     load_event: function load_event()
     {
         $('#store_tabs_btn').click(tab_monitor.store_tabs_btn_clicked);
+        $('#store_tabs_close_btn').click(tab_monitor.store_tabs_close_btn_clicked);
         $('#manual_button').click(tab_monitor.manual_input);
         //dropbox.getFolderContents('',tab_monitor.folder_contents())
         tab_monitor.loadStoredTabs();
@@ -234,8 +287,10 @@ tab_monitor.setProperties(tab_monitor,
     request_received: function (request, sender, sendResponse)
     {
         if (request.oauth_status === 'user permission granted')
+        {
             console.log("OAuth user permission granted")
             dropbox.setup();
+        }
     }
 ,
     dropbox_ready: function () {}
@@ -300,6 +355,10 @@ tab_monitor.setProperties(tab_monitor,
         var id_name_query = '[id=\'' + id_name + '\']';
         $('#dropbox_list').append('<tr id=\"' + id_name +'\"></tr');
         $(id_name_query).append('<td>' + entry['path'] + '</td>');
+    }
+,
+    display_message: function (message) {
+        console.log('Status update: ' + message);
     }
 });
 

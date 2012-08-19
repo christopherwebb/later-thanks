@@ -465,20 +465,18 @@ dropbox.getThumbnail = function(path,size) {
 	});
 }
 
-dropbox.quick_upload = function(path,file, replace) {
+dropbox.quick_upload = function(path, file, replace, callback) {
 	dropbox.oauth_non_Ajax(
 		{
 			url: "https://api-content.dropbox.com/1/files_put/" + dropbox.accessType + "/" + path,
-			type: "text",
+			type: "json",
 			method: "PUT"
 		},
 		{
 			'replace': replace
 		},
 		file,
-		function(data) {
-			callback(data);
-		}
+		callback
 	);
 }
 
@@ -537,8 +535,9 @@ dropbox.oauth_non_Ajax = function (param1, param2, filedata, callback)
 	var req = new XMLHttpRequest();
 	var url_for_dropbox = OAuth.addToURL(param1.url, message.parameters);
 	req.open("PUT", url_for_dropbox , true);
-	req.onreadystatechange = function(hello) {
-		console.log("Request state change: " + req.readyState)
+	req.onreadystatechange = function(oEvent) {
+		if (oEvent.target.readyState === 4)
+			callback(oEvent.target);
 	};
 	req.send(filedata);
 }
