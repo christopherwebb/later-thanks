@@ -329,7 +329,7 @@ tab_monitor.setProperties(tab_monitor,
         dropbox.getFolderContents(
             '',
             function (data) {
-                for (var iter = 0, entry;entry = data['contents'][iter];iter++) {
+                for (var iter = 0, entry; entry = data['contents'][iter]; iter++) {
                     if (!entry['is_dir']) {
                         tab_monitor.create_saved_entry(entry);
                     }
@@ -337,6 +337,93 @@ tab_monitor.setProperties(tab_monitor,
             },
             function (error) {
                 console.log('Error accessing folder contents.');
+            }
+        );
+    }
+,
+    load_tab_file: function(filename)
+    {
+        var create_tabs = function (this_tab_info) {
+            var tab_insert_index = this_tab_info.index + 1;
+
+            for (var block_index = 0, block; block = stored_entries[block_index]; block_index++) {
+                var block_tabs = block['tabs'];
+                for (var tab_index = 0, tab_entry; tab_entry = block_tabs[tab_index]; tab_index++) {
+                    chrome.tabs.create({
+                        'url': tab_entry.url,
+                        'index': tab_insert_index
+                    });
+                    tab_insert_index++;
+                }
+            }
+        };
+
+        tab_monitor.get_json(
+            filename,
+            function (filename, data) {
+                try {
+                    var stored_entries = JSON.parse(data).tabs;
+                }
+                catch (e) {
+                    return;
+                }
+
+                chrome.tabs.getCurrent(create_tabs);
+            },
+            function (filename,error) {
+                console.log('Unable to get file.');
+            }
+        );
+    }
+,
+    show_saved_entries: function (filename) {
+        var show_saved_entry = function (stored_entries) {
+            $('#saved_url_list').empty();
+            var count = 0;
+            var on_each_entry = function(tab_entry) {
+                var id_name = escape('saved_url_' + count);
+                var id_name_query = '#' + id_name;
+                
+                $('#saved_url_list').append('<tr id=\"' + id_name +'\"></tr>');
+                $(id_name_query).append('<td>' + tab_entry.url + '</td>');
+                $(id_name_query).append('<td><a class="open" href=\"#\">Open tab</a></td>');
+                $(id_name_query).append('<td><a class="read" href=\"#\">Mark tab read</a></td>');
+
+                $(id_name_query + ' a.open').click(function () {
+                    chrome.tabs.getCurrent(function(this_tab_info) {
+                        chrome.tabs.create({
+                            'url': tab_entry.url,
+                            'index': this_tab_info.index + 1
+                        });
+                    });
+                });
+                $(id_name_query + ' a.read').click(function () {
+                    //tab_monitor.load_tab(tab_entry.url);
+                });
+
+                count++;
+            };
+            _.each(_.pluck(stored_entries, 'tabs'), function(block_entries) {
+                _.each(block_entries, function(tab_entry) {
+                    on_each_entry(tab_entry);
+                });
+            });
+        };
+
+        tab_monitor.get_json(
+            filename,
+            function (filename, data) {
+                try {
+                    var stored_entries = JSON.parse(data).tabs;
+                }
+                catch (e) {
+                    return;
+                }
+
+                show_saved_entry(stored_entries);
+            },
+            function (filename,error) {
+                console.log('Unable to get file.');
             }
         );
     }
@@ -351,10 +438,22 @@ tab_monitor.setProperties(tab_monitor,
         }
         var parsed_name = extracted[0].replace(RegExp('.json$'),'');
 
+        var filename = entry['path'];
+        if (filename.indexOf('/') === 0) {
+            filename = filename.substring(1);
+        }
+
         var id_name = escape('saved_json_' + parsed_name);
-        var id_name_query = '[id=\'' + id_name + '\']';
-        $('#dropbox_list').append('<tr id=\"' + id_name +'\"></tr');
-        $(id_name_query).append('<td>' + entry['path'] + '</td>');
+        //var id_name_query = '[id=\'' + id_name + '\']';
+        var id_name_query = '#' + id_name;
+        $('#dropbox_list').append('<tr id=\"' + id_name +'\"></tr>');
+        $(id_name_query).append('<td>' + filename + '</td>');
+        $(id_name_query).append('<td><a href=\"#\">Open tabs</a></td>');
+
+        $(id_name_query + ' a').click(function () {
+            // tab_monitor.load_tab(filename);
+            tab_monitor.show_saved_entries(filename);
+        });
     }
 ,
     display_message: function (message) {
