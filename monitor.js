@@ -20,8 +20,8 @@ tab_monitor.setProperties(tab_monitor,
     {
         $('#tab_list').append('<tr id=' + tab_monitor.tab_div_name(tab.id) + '></tr>');
         $('#tab_list #' + tab_monitor.tab_div_name(tab.id))
-            .append('<td class=title>' + tab.title + '</td>')
-            .append('<td><input class="tab_select_checkbox" type="checkbox" value="' + tab.id + '"></td>');
+            .append('<td><input class="tab_select_checkbox" type="checkbox" value="' + tab.id + '"></td>')
+            .append('<td class=title>' + tab.title + '</td>');
     }
 ,
     get_tabs: function get_tabs(result)
