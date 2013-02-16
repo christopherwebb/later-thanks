@@ -16,32 +16,12 @@ tab_monitor.setProperties(tab_monitor,
         return "tab_detail_" + tab_id;
     }
 ,
-    create_tab_entry: function create_tab_entry(tab)
-    {
-        var table_entry = document.createElement("tr");
-        table_entry.id = tab_monitor.tab_div_name(tab.id);
-
-        var tab_title = document.createElement("td");
-        tab_title.textContent = tab.title;
-
-        var tab_select = document.createElement("td");
-        var selector = document.createElement("input");
-        selector.className = "tab_select_checkbox";
-        selector.setAttribute("type", "checkbox");
-        selector.setAttribute("value", tab.id);
-        tab_select.appendChild(selector);
-
-        table_entry.appendChild(tab_title);
-        table_entry.appendChild(tab_select);
-        return table_entry;
-    }
-,
     add_tab_entry: function add_tab_entry(tab)
     {
-        var table = document.getElementById("tab_list");
-        var element = tab_monitor.create_tab_entry(tab);
-        table.appendChild(element);
-        //document.body.appendChild(document.createElement("br"));
+        $('#tab_list').append('<tr id=' + tab_monitor.tab_div_name(tab.id) + '></tr>');
+        $('#tab_list #' + tab_monitor.tab_div_name(tab.id))
+            .append('<td class=title>' + tab.title + '</td>')
+            .append('<td><input class="tab_select_checkbox" type="checkbox" value="' + tab.id + '"></td>');
     }
 ,
     get_tabs: function get_tabs(result)
@@ -57,26 +37,15 @@ tab_monitor.setProperties(tab_monitor,
         if (changeInfo.url === undefined)
             return;
 
-        // Look for already existing tab entry
-        var updated_tab_div = document.getElementById(tab_monitor.tab_div_name(tabId));
-
-        // Modify existing entry
-        if (updated_tab_div != null)
-        {
-            var replacement_element = tab_monitor.create_tab_entry(tab);
-            document.body.replaceChild(replacement_element,updated_tab_div);
-        }
-        // Add new entry 
+        if ($('#tab_list #' + tab_monitor.tab_div_name(tab.id)).length)
+            $('#tab_list #' + tab_monitor.tab_div_name(tab.id) + ' td.title').text(tab.title);
         else
-        {
             tab_monitor.add_tab_entry(tab);
-        }
     }
 ,
     event_tab_remove: function event_tab_remove(tabId, removeInfo)
     {
-        var removed_tab_div = document.getElementById(tab_monitor.tab_div_name(tabId));
-        document.body.removeChild(removed_tab_div);
+        $('#tab_list #' + tab_monitor.tab_div_name(tabId)).remove();
     }
 ,
     check_folder_contents: function check_folder_contents()
