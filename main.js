@@ -1,4 +1,4 @@
-// chrome.extension.onRequest.addListener(tab_monitor.request_received);
+chrome.extension.onRequest.addListener(oauth_success_listener.request_received);
 
 var ang_app = angular.module('linkArchiverApp', []);
 tab_current_control(ang_app);

@@ -44,6 +44,6 @@ var tab_current_control = function (ang_app) {
     };
 
     chrome.tabs.onUpdated.addListener(event_tab_update);
-    chrome.tabs.onRemoved.addListener(tab_monitor.event_tab_remove);
+    chrome.tabs.onRemoved.addListener(event_tab_remove);
   });
 };

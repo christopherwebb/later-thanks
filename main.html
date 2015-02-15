@@ -17,10 +17,14 @@
     <script type='text/javascript' src='jquery.js'></script>
     <script type='text/javascript' src='underscore-min.js'></script>
     <script type='text/javascript' src='angular.min.js'></script>
+
     <script type='text/javascript' src='dropbox.js'></script>
-    <script type='text/javascript' src="monitor.js"></script>
+    <script type='text/javascript' src="oauth.listener.js"></script>
+
+    <!-- <script type='text/javascript' src="monitor.js"></script> -->
     <script type='text/javascript' src="tabs.current.ctrl.js"></script>
     <script type='text/javascript' src="tabs.saved.ctrl.js"></script>
+    <script type='text/javascript' src="archiver.js"></script>
     <script type='text/javascript' src="main.js"></script>
 
   </head>
@@ -75,12 +79,20 @@
       </table>
       -->
       <div ng-repeat="saved_tab in saved_tabs">
-        <div>
+        <div ng-click="saved_group_clicked(saved_tab.id)">
           {{ saved_tab.path }}
         </div>
         <div class="loaded_tabs" ng-if="saved_tab.show_loaded_tabs">
           <div class="loaded_tab" ng-repeat="loaded_tab in saved_tab.loaded_tabs">
-            {{ loaded_tab.url }}
+            <div>
+              <a href="{{ loaded_tab.url }}" target="_blank">
+                {{ loaded_tab.tab_title }}
+              </a>
+            </div>
+            <div ng-click="mark_saved_url_as_read_clicked(saved_tab.id, loaded_tab.url)">
+              Mark as read
+            </div>
+            ( {{ loaded_tab.url }} )
           </div>
         </div>
       </div>

@@ -16,7 +16,7 @@
   ],
  "web_accessible_resources": [
     "oauth_callback.html",
-    "monitor.js",
+    "oauth.listener.js",
     "dropbox.js"
   ]
 }
