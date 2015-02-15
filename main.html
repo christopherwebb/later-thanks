@@ -1,41 +1,89 @@
 <!doctype html>
-<html>
-    <style>
-        #tab_list {
-            border-spacing: 0px;
-        }
-    </style>
-    <head>
-        <title>Bye Bye!</title>
+<html ng-csp ng-app="linkArchiverApp">
+  <style>
+    #tab_list {
+      border-spacing: 0px;
+    }
 
-        <script type='text/javascript' src='underscore-min.js'></script>
-        <script type='text/javascript' src='dropbox.js'></script>
-        <script type='text/javascript' src="monitor.js"></script>
+    .title .fav_icon {
+      height: 16px;
+      width: 16px;
+    }
+  </style>
 
-    </head>
-    <body>
-    	<div id="tabs">
-    		<table id="tab_list">
-    		</table>
-        	<div id="tab_actions" class='actions'>
-        		<button id="store_tabs_btn" action="" type="button">Store tabs</button>
-                <button id="store_tabs_close_btn" action="" type="button">Store &amp; close tabs</button>
-        	</div>
+  <head>
+    <title>Link Archiver</title>
+
+    <script type='text/javascript' src='jquery.js'></script>
+    <script type='text/javascript' src='underscore-min.js'></script>
+    <script type='text/javascript' src='angular.min.js'></script>
+    <script type='text/javascript' src='dropbox.js'></script>
+    <script type='text/javascript' src="monitor.js"></script>
+    <script type='text/javascript' src="tabs.current.ctrl.js"></script>
+    <script type='text/javascript' src="tabs.saved.ctrl.js"></script>
+    <script type='text/javascript' src="main.js"></script>
+
+  </head>
+  <body>
+    <div id="tabs" ng-controller="tab_current_controller">
+      <table id="tab_list">
+        <tbody>
+          <tr ng-repeat="current_tab in current_tabs">
+            <td>
+              <input class="tab_select_checkbox" type="checkbox" value="{{ current_tab.id }}">
+            </td>
+
+            <td class="title">
+              <img src="{{ current_tab.icon}}" alt="" class="fav_icon"></img>
+              {{ current_tab.title }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div id="tab_actions" class='actions'>
+        <button id="store_tabs_btn" action="" type="button">Store tabs</button>
+        <button id="store_tabs_close_btn" action="" type="button">Store &amp; close tabs</button>
+      </div>
+    </div>
+
+    <div class='manual-submission'>
+      <textarea></textarea>
+
+      <br>
+
+      <div id="manual_actions" class='actions'>
+        <button id="manual_button" action="" type="button">Store tabs</button>
+      </div>
+    </div>
+
+    <div id='messages'>
+    </div>
+
+    <div id='saved_tabs' ng-controller="tab_saved_controller">
+    <!--
+      <table id="dropbox_list">
+        <tbody>
+          <tr ng-repeat="saved_tab in saved_tabs">
+            <td>{{ saved_tab.path }}</td>
+
+            <td>
+              <a href="#">Open tabs</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      -->
+      <div ng-repeat="saved_tab in saved_tabs">
+        <div>
+          {{ saved_tab.path }}
         </div>
-        <div class='manual-submission'>
-            <textarea></textarea>
-            <br>
-            <div id="manual_actions" class='actions'>
-                <button id="manual_button" action="" type="button">Store tabs</button>
-            </div>
+        <div class="loaded_tabs" ng-if="saved_tab.show_loaded_tabs">
+          <div class="loaded_tab" ng-repeat="loaded_tab in saved_tab.loaded_tabs">
+            {{ loaded_tab.url }}
+          </div>
         </div>
-        <div id='messages'>
-        </div>
-        <div id='saved_tabs'>
-            <table id="dropbox_list">
-            </table>
-            <table id="saved_url_list">
-            </table>
-        </div>
-    </body>
+      </div>
+    </div>
+  </body>
 </html>

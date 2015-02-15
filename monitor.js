@@ -250,7 +250,7 @@ tab_monitor.setProperties(tab_monitor,
         $('#store_tabs_close_btn').click(tab_monitor.store_tabs_close_btn_clicked);
         $('#manual_button').click(tab_monitor.manual_input);
         //dropbox.getFolderContents('',tab_monitor.folder_contents())
-        tab_monitor.loadStoredTabs();
+        // tab_monitor.loadStoredTabs();
     }
 ,
     request_received: function (request, sender, sendResponse)
@@ -429,11 +429,3 @@ tab_monitor.setProperties(tab_monitor,
         console.log('Status update: ' + message);
     }
 });
-
-var tab_query = new Object();
-chrome.tabs.query(tab_query, tab_monitor.get_tabs);
-chrome.tabs.onUpdated.addListener(tab_monitor.event_tab_update);
-chrome.tabs.onRemoved.addListener(tab_monitor.event_tab_remove);
-chrome.extension.onRequest.addListener(tab_monitor.request_received);
-
-document.addEventListener("DOMContentLoaded", tab_monitor.load_event);
